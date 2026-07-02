@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DHF ER Model v2.0 — Email Agent × Cloudflare D1 × 鼎新遷移</title>
+<style>
+  :root{
+    --ink:#2A2622;
+    --ink-soft:#6B625A;
+    --paper:#FBF9F6;
+    --card:#FFFFFF;
+    --accent:#E86C3A;        /* 工具套件主色 */
+    --accent-deep:#B94E22;
+    --entity-core:#E86C3A;   /* 核心實體 */
+    --entity-lookup:#4A7A8C; /* 參照/主檔 */
+    --entity-link:#5E8C5A;   /* 關聯表 */
+    --entity-audit:#8A8078;  /* 稽核 */
+    --line:#D8D2CA;
+    --mono:ui-monospace,"SFMono-Regular",Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    line-height:1.75;
+    padding:0 0 80px;
+  }
+  header{
+    border-bottom:3px solid var(--accent);
+    background:var(--card);
+    padding:36px 48px 28px;
+  }
+  .doc-meta{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ink-soft);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  h1{font-size:26px;font-weight:700;letter-spacing:.02em;}
+  h1 .ver{color:var(--accent);font-family:var(--mono);font-size:20px;margin-left:8px;}
+  .subtitle{color:var(--ink-soft);font-size:14px;margin-top:6px;}
+  main{max-width:1180px;margin:0 auto;padding:0 32px;}
+  section{margin-top:52px;}
+  h2{
+    font-size:19px;
+    border-left:5px solid var(--accent);
+    padding-left:14px;
+    margin-bottom:18px;
+  }
+  h3{font-size:15px;margin:22px 0 10px;color:var(--accent-deep);}
+  p.note{font-size:13.5px;color:var(--ink-soft);margin-bottom:14px;}
+
+  /* 圖例 */
+  .legend{display:flex;gap:22px;flex-wrap:wrap;font-size:13px;margin-bottom:14px;}
+  .legend span{display:inline-flex;align-items:center;gap:7px;}
+  .chip{width:14px;height:14px;border-radius:3px;display:inline-block;}
+
+  .diagram-wrap{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:20px;
+    overflow-x:auto;
+  }
+  svg{display:block;min-width:1100px;}
+  svg text{font-family:var(--mono);}
+  .ent-title{font-size:13px;font-weight:700;fill:#fff;}
+  .ent-field{font-size:11px;fill:var(--ink);}
+  .ent-pk{font-weight:700;}
+  .ent-fk{fill:#4A7A8C;}
+  .rel-label{font-size:10.5px;fill:var(--ink-soft);}
+  .card-lbl{font-size:11px;font-weight:700;fill:var(--accent-deep);}
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--card);
+    font-size:13px;
+    margin-bottom:8px;
+  }
+  th{
+    background:var(--ink);
+    color:#fff;
+    text-align:left;
+    padding:8px 12px;
+    font-weight:600;
+    font-size:12.5px;
+  }
+  td{padding:7px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  td code, p code, li code{
+    font-family:var(--mono);
+    font-size:12px;
+    background:#F1EDE7;
+    padding:1px 5px;
+    border-radius:3px;
+  }
+  .pk-tag,.fk-tag,.uq-tag{
+    font-family:var(--mono);
+    font-size:10px;
+    padding:1px 5px;
+    border-radius:3px;
+    color:#fff;
+    margin-left:5px;
+  }
+  .pk-tag{background:var(--accent);}
+  .fk-tag{background:var(--entity-lookup);}
+  .uq-tag{background:var(--entity-audit);}
+
+  pre{
+    background:#26221E;
+    color:#EDE7DE;
+    font-family:var(--mono);
+    font-size:12.5px;
+    line-height:1.6;
+    padding:20px 24px;
+    border-radius:8px;
+    overflow-x:auto;
+    margin:10px 0 6px;
+  }
+  pre .kw{color:#F0A268;}
+  pre .cm{color:#8A8078;}
+
+  .callout{
+    background:#FDF2EB;
+    border:1px solid #F0C9B2;
+    border-left:5px solid var(--accent);
+    border-radius:6px;
+    padding:14px 18px;
+    font-size:13.5px;
+    margin:16px 0;
+  }
+  .callout b{color:var(--accent-deep);}
+  footer{
+    max-width:1180px;margin:60px auto 0;padding:18px 32px 0;
+    border-top:1px solid var(--line);
+    font-size:12px;color:var(--ink-soft);font-family:var(--mono);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="doc-meta">BIOTEQ · R&amp;D DEPT. 2 · DHF EMAIL AGENT · 2026-07-02</div>
+  <h1>DHF 本體 ER 模型<span class="ver">v2.0</span></h1>
+  <div class="subtitle">部署路線：Cloudflare Email Routing + Worker + D1（測試/中繼層）→ 鼎新 ERP（正式系統）· 依 21 CFR 820.30 / ISO 13485 §7.3 / ISO 14971</div>
+</header>
+
+<main>
+
+<!-- ══════════════ 一、ER 圖 ══════════════ -->
+<section>
+  <h2>一、實體關聯圖（Crow's Foot 簡化記法）</h2>
+  <div class="legend">
+    <span><i class="chip" style="background:var(--entity-core)"></i>核心實體</span>
+    <span><i class="chip" style="background:var(--entity-lookup)"></i>主檔 / 參照表</span>
+    <span><i class="chip" style="background:var(--entity-link)"></i>多對多關聯表</span>
+    <span><i class="chip" style="background:var(--entity-audit)"></i>稽核（Append-only）</span>
+    <span style="color:var(--ink-soft)">實線＝外鍵關聯　虛線＝多型參照</span>
+  </div>
+
+  <div class="diagram-wrap">
+  <svg viewBox="0 0 1120 840" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="many" markerWidth="14" markerHeight="14" refX="12" refY="6" orient="auto">
+        <path d="M2,1 L12,6 L2,11" fill="none" stroke="#6B625A" stroke-width="1.4"/>
+      </marker>
+    </defs>
+
+    <!-- ── 關聯線（先畫，壓在方塊底下） ── -->
+    <!-- PROJECT 1—N DOCUMENT -->
+    <line x1="270" y1="130" x2="430" y2="150" stroke="#6B625A" stroke-width="1.4" marker-end="url(#many)"/>
+    <text x="285" y="122" class="card-lbl">1</text>
+    <text x="405" y="140" class="card-lbl">N</text>
+    <text x="300" y="152" class="rel-label">隸屬專案</text>
+
+    <!-- PERSON 1—N DOCUMENT (submitter) -->
+    <line x1="830" y1="140" x2="710" y2="150" stroke="#6B625A" stroke-width="1.4" marker-end="url(#many)"/>
+    <text x="812" y="132" class="card-lbl">1</text>
+    <text x="722" y="140" class="card-lbl">N</text>
+    <text x="738" y="164" class="rel-label">提交者 submitter_id</text>
+
+    <!-- DOCUMENT 1—N DOC_SECTION_LINK -->
+    <line x1="470" y1="310" x2="330" y2="420" stroke="#6B625A" stroke-width="1.4" marker-end="url(#many)"/>
+    <text x="452" y="330" class="card-lbl">1</text>
+    <text x="348" y="416" class="card-lbl">N</text>
+
+    <!-- DHF_SECTION 1—N DOC_SECTION_LINK -->
+    <line x1="270" y1="690" x2="285" y2="590" stroke="#6B625A" stroke-width="1.4" marker-end="url(#many)"/>
+    <text x="252" y="682" class="card-lbl">1</text>
+    <text x="266" y="606" class="card-lbl">N</text>
+
+    <!-- DOCUMENT 1—N RISK_ASSESSMENT -->
+    <line x1="710" y1="270" x2="790" y2="420" stroke="#6B625A" stroke-width="1.4" marker-end="url(#many)"/>
+    <text x="716" y="262" class="card-lbl">1</text>
+    <text x="770" y="412" class="card-lbl">N</text>
+    <text x="742" y="332" class="rel-label">觸發風險評估</text>
+
+    <!-- DOCUMENT 1—N TRACE_LINK (from / to 兩條) -->
+    <line x1="530" y1="310" x2="530" y2="470" stroke="#6B625A" stroke-width="1.4" marker-end="url(#many)"/>
+    <line x1="610" y1="310" x2="610" y2="470" stroke="#6B625A" stroke-width="1.4" marker-end="url(#many)"/>
+    <text x="512" y="332" class="card-lbl">1</text>
+    <text x="514" y="462" class="card-lbl">N</text>
+    <text x="618" y="332" class="card-lbl">1</text>
+    <text x="618" y="462" class="card-lbl">N</text>
+    <text x="452" y="400" class="rel-label">from_doc_id</text>
+    <text x="620" y="400" class="rel-label">to_doc_id</text>
+
+    <!-- PERSON 1—N RISK_ASSESSMENT (confirmed_by, dashed) -->
+    <line x1="945" y1="230" x2="920" y2="420" stroke="#6B625A" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#many)"/>
+    <text x="930" y="330" class="rel-label">確認者 confirmed_by</text>
+
+    <!-- AUDIT_LOG 多型參照 (dashed) -->
+    <line x1="860" y1="700" x2="660" y2="300" stroke="#8A8078" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#many)"/>
+    <line x1="900" y1="700" x2="890" y2="620" stroke="#8A8078" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#many)"/>
+    <text x="700" y="560" class="rel-label" transform="rotate(-62 700 560)">entity_type + entity_id 多型參照</text>
+
+    <!-- ══ PROJECT ══ -->
+    <g>
+      <rect x="40" y="60" width="230" height="160" rx="6" fill="#fff" stroke="var(--entity-core)" stroke-width="1.6"/>
+      <rect x="40" y="60" width="230" height="30" rx="6" fill="var(--entity-core)"/>
+      <text x="52" y="80" class="ent-title">PROJECT 專案</text>
+      <text x="52" y="110" class="ent-field ent-pk">project_id  PK</text>
+      <text x="52" y="128" class="ent-field">project_code（TR-RD2-26-020）</text>
+      <text x="52" y="146" class="ent-field">name / device_type</text>
+      <text x="52" y="164" class="ent-field">regulatory_path（510k/TFDA）</text>
+      <text x="52" y="182" class="ent-field">status / created_at</text>
+      <text x="52" y="200" class="ent-field ent-fk">erp_ref（鼎新工單/專案號）</text>
+    </g>
+
+    <!-- ══ DOCUMENT ══ -->
+    <g>
+      <rect x="430" y="40" width="280" height="270" rx="6" fill="#fff" stroke="var(--entity-core)" stroke-width="1.6"/>
+      <rect x="430" y="40" width="280" height="30" rx="6" fill="var(--entity-core)"/>
+      <text x="442" y="60" class="ent-title">DOCUMENT 文件</text>
+      <text x="442" y="90"  class="ent-field ent-pk">doc_id  PK</text>
+      <text x="442" y="108" class="ent-field ent-fk">project_id  FK / submitter_id  FK</text>
+      <text x="442" y="126" class="ent-field">filename / version / doc_type</text>
+      <text x="442" y="144" class="ent-field">file_hash（SHA-256, UQ）</text>
+      <text x="442" y="162" class="ent-field">file_url（GitHub 路徑）</text>
+      <text x="442" y="180" class="ent-field">email_message_id（信件溯源）</text>
+      <text x="442" y="198" class="ent-field">ai_classification_json</text>
+      <text x="442" y="216" class="ent-field">confidence_tier（green/yellow/red）</text>
+      <text x="442" y="234" class="ent-field">status（pending/confirmed/rejected）</text>
+      <text x="442" y="252" class="ent-field ent-fk">confirmed_by  FK / confirmed_at</text>
+      <text x="442" y="270" class="ent-field">received_at</text>
+      <text x="442" y="288" class="ent-field ent-fk">erp_ref（鼎新文管單號）</text>
+    </g>
+
+    <!-- ══ PERSON ══ -->
+    <g>
+      <rect x="830" y="60" width="240" height="170" rx="6" fill="#fff" stroke="var(--entity-lookup)" stroke-width="1.6"/>
+      <rect x="830" y="60" width="240" height="30" rx="6" fill="var(--entity-lookup)"/>
+      <text x="842" y="80" class="ent-title">PERSON 人員</text>
+      <text x="842" y="110" class="ent-field ent-pk">person_id  PK</text>
+      <text x="842" y="128" class="ent-field">name / department / role</text>
+      <text x="842" y="146" class="ent-field">email（UQ · 白名單驗證依據）</text>
+      <text x="842" y="164" class="ent-field">is_active</text>
+      <text x="842" y="182" class="ent-field ent-fk">erp_ref（鼎新員工編號）</text>
+      <text x="842" y="212" class="rel-label">→ 收信 Worker 以此表做寄件人白名單</text>
+    </g>
+
+    <!-- ══ DOC_SECTION_LINK ══ -->
+    <g>
+      <rect x="170" y="420" width="270" height="170" rx="6" fill="#fff" stroke="var(--entity-link)" stroke-width="1.6"/>
+      <rect x="170" y="420" width="270" height="30" rx="6" fill="var(--entity-link)"/>
+      <text x="182" y="440" class="ent-title">DOC_SECTION_LINK 文件×章節</text>
+      <text x="182" y="470" class="ent-field ent-pk">link_id  PK</text>
+      <text x="182" y="488" class="ent-field ent-fk">doc_id  FK / section_id  FK（UQ 複合）</text>
+      <text x="182" y="506" class="ent-field">assigned_by（AI / HUMAN）</text>
+      <text x="182" y="524" class="ent-field">ai_confidence（0–1）</text>
+      <text x="182" y="542" class="ent-field">is_confirmed / confirmed_by</text>
+      <text x="182" y="572" class="rel-label">→ 一份文件可同時屬多個 DHF 章節</text>
+    </g>
+
+    <!-- ══ DHF_SECTION ══ -->
+    <g>
+      <rect x="120" y="690" width="280" height="130" rx="6" fill="#fff" stroke="var(--entity-lookup)" stroke-width="1.6"/>
+      <rect x="120" y="690" width="280" height="30" rx="6" fill="var(--entity-lookup)"/>
+      <text x="132" y="710" class="ent-title">DHF_SECTION 章節主檔</text>
+      <text x="132" y="740" class="ent-field ent-pk">section_id  PK</text>
+      <text x="132" y="758" class="ent-field">section_code（DP/DI/DO/DR/DV/DVal/DT/DC/RMF）</text>
+      <text x="132" y="776" class="ent-field">name_zh / name_en</text>
+      <text x="132" y="794" class="ent-field">cfr_ref（820.30(x)）/ iso_ref（7.3.x）</text>
+    </g>
+
+    <!-- ══ TRACE_LINK ══ -->
+    <g>
+      <rect x="450" y="470" width="250" height="150" rx="6" fill="#fff" stroke="var(--entity-link)" stroke-width="1.6"/>
+      <rect x="450" y="470" width="250" height="30" rx="6" fill="var(--entity-link)"/>
+      <text x="462" y="490" class="ent-title">TRACE_LINK 追溯關聯</text>
+      <text x="462" y="520" class="ent-field ent-pk">trace_id  PK</text>
+      <text x="462" y="538" class="ent-field ent-fk">from_doc_id  FK / to_doc_id  FK</text>
+      <text x="462" y="556" class="ent-field">link_type（input→output、</text>
+      <text x="462" y="572" class="ent-field">　output→verification、risk→mitigation）</text>
+      <text x="462" y="590" class="ent-field">created_by / created_at</text>
+    </g>
+
+    <!-- ══ RISK_ASSESSMENT ══ -->
+    <g>
+      <rect x="760" y="420" width="290" height="200" rx="6" fill="#fff" stroke="var(--entity-core)" stroke-width="1.6"/>
+      <rect x="760" y="420" width="290" height="30" rx="6" fill="var(--entity-core)"/>
+      <text x="772" y="440" class="ent-title">RISK_ASSESSMENT 風險評估</text>
+      <text x="772" y="470" class="ent-field ent-pk">risk_id  PK</text>
+      <text x="772" y="488" class="ent-field ent-fk">doc_id  FK / project_id  FK</text>
+      <text x="772" y="506" class="ent-field">hazard / harm / severity / probability</text>
+      <text x="772" y="524" class="ent-field">risk_level / mitigation</text>
+      <text x="772" y="542" class="ent-field">iso14971_clause</text>
+      <text x="772" y="560" class="ent-field">ai_suggested（AI 建議標記）</text>
+      <text x="772" y="578" class="ent-field">status（ai_draft → confirmed）</text>
+      <text x="772" y="596" class="ent-field ent-fk">confirmed_by  FK / confirmed_at</text>
+    </g>
+
+    <!-- ══ AUDIT_LOG ══ -->
+    <g>
+      <rect x="760" y="700" width="290" height="120" rx="6" fill="#fff" stroke="var(--entity-audit)" stroke-width="1.6"/>
+      <rect x="760" y="700" width="290" height="30" rx="6" fill="var(--entity-audit)"/>
+      <text x="772" y="720" class="ent-title">AUDIT_LOG 稽核軌跡（Append-only）</text>
+      <text x="772" y="750" class="ent-field ent-pk">log_id  PK</text>
+      <text x="772" y="768" class="ent-field">entity_type / entity_id / action</text>
+      <text x="772" y="786" class="ent-field">actor_type（AI/HUMAN/SYSTEM）/ actor_id</text>
+      <text x="772" y="804" class="ent-field">detail_json / created_at（不可修改）</text>
+    </g>
+  </svg>
+  </div>
+
+  <div class="callout">
+    <b>建模三原則：</b>①「文件屬於哪個 DHF 章節」是<b>多對多</b>，用 <code>DOC_SECTION_LINK</code> 關聯表承載，而非在 DOCUMENT 上放單一分類欄位——與 LitDB 專利滾雪球 Citation 表是同一個 ER 思維。②AI 的判斷（分類、風險）一律以 <code>ai_suggested / assigned_by='AI' / status='ai_draft'</code> 標記，<b>經人工確認才生效</b>。③每個核心實體都預留 <code>erp_ref</code> 欄位，為鼎新遷移建立雙向對照。
+  </div>
+</section>
+
+<!-- ══════════════ 二、關聯一覽 ══════════════ -->
+<section>
+  <h2>二、關聯一覽</h2>
+  <table>
+    <tr><th style="width:32%">關聯</th><th style="width:14%">基數</th><th>語意</th></tr>
+    <tr><td><code>PROJECT → DOCUMENT</code></td><td>1 : N</td><td>每份文件必隸屬一個案件（如 TR-RD2-26-020、Kaneko 同軸切片針專案）</td></tr>
+    <tr><td><code>PERSON → DOCUMENT</code></td><td>1 : N</td><td>提交者；收信 Worker 以 PERSON.email 白名單驗證寄件人</td></tr>
+    <tr><td><code>DOCUMENT ↔ DHF_SECTION</code></td><td>N : M</td><td>經 <code>DOC_SECTION_LINK</code>；一份驗證報告可同屬 Design Verification 與回應某 Design Input</td></tr>
+    <tr><td><code>DOCUMENT → RISK_ASSESSMENT</code></td><td>1 : N</td><td>一份文件可觸發多筆風險評估（獨立實體，非 Document 內嵌欄位）</td></tr>
+    <tr><td><code>DOCUMENT → TRACE_LINK</code>（×2）</td><td>1 : N</td><td>自我參照關聯表；支撐 Design Input → Output → V&amp;V 的追溯矩陣查詢</td></tr>
+    <tr><td><code>PERSON → RISK_ASSESSMENT</code></td><td>1 : N</td><td>風險評估確認者（confirmed_by），稽核時的簽核依據</td></tr>
+    <tr><td><code>AUDIT_LOG → 各實體</code></td><td>多型</td><td><code>entity_type + entity_id</code> 參照任何實體；僅新增、不可修改</td></tr>
+  </table>
+</section>
+
+<!-- ══════════════ 三、D1 DDL ══════════════ -->
+<section>
+  <h2>三、Cloudflare D1 建表腳本（SQLite 方言）</h2>
+  <p class="note">可直接以 <code>wrangler d1 execute dhf-db --file=schema.sql</code> 部署。D1 定位為<b>測試與中繼層</b>，正式紀錄以遷移後的鼎新系統為準。</p>
+<pre>
+<span class="cm">-- DHF Schema v2.0 · Cloudflare D1 (SQLite) · 2026-07-02</span>
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE project (
+  project_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_code    TEXT NOT NULL UNIQUE,          <span class="cm">-- 例：TR-RD2-26-020</span>
+  name            TEXT NOT NULL,
+  device_type     TEXT,                          <span class="cm">-- HD catheter / biopsy needle...</span>
+  regulatory_path TEXT CHECK(regulatory_path IN ('510k','TFDA','both')),
+  status          TEXT DEFAULT 'active',
+  erp_ref         TEXT,                          <span class="cm">-- 鼎新專案/工單號（遷移對照）</span>
+  created_at      TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE person (
+  person_id   INTEGER PRIMARY KEY AUTOINCREMENT,
+  name        TEXT NOT NULL,
+  email       TEXT NOT NULL UNIQUE,              <span class="cm">-- 收信白名單驗證依據</span>
+  department  TEXT,
+  role        TEXT,
+  is_active   INTEGER DEFAULT 1,
+  erp_ref     TEXT                               <span class="cm">-- 鼎新員工編號</span>
+);
+
+CREATE TABLE dhf_section (
+  section_id   INTEGER PRIMARY KEY,
+  section_code TEXT NOT NULL UNIQUE,             <span class="cm">-- DP/DI/DO/DR/DV/DVal/DT/DC/RMF</span>
+  name_zh      TEXT NOT NULL,
+  name_en      TEXT NOT NULL,
+  cfr_ref      TEXT,                             <span class="cm">-- 21 CFR 820.30(x)</span>
+  iso_ref      TEXT                              <span class="cm">-- ISO 13485 7.3.x</span>
+);
+
+CREATE TABLE document (
+  doc_id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id        INTEGER NOT NULL REFERENCES project(project_id),
+  submitter_id      INTEGER NOT NULL REFERENCES person(person_id),
+  filename          TEXT NOT NULL,
+  version           TEXT DEFAULT '1.0',
+  doc_type          TEXT,
+  file_hash         TEXT NOT NULL UNIQUE,        <span class="cm">-- SHA-256，防重複與竄改比對</span>
+  file_url          TEXT NOT NULL,               <span class="cm">-- GitHub repo 路徑</span>
+  email_message_id  TEXT,                        <span class="cm">-- 原始信件 Message-ID，溯源</span>
+  ai_classification_json TEXT,                   <span class="cm">-- Claude 分類原始輸出</span>
+  confidence_tier   TEXT CHECK(confidence_tier IN ('green','yellow','red')),
+  status            TEXT DEFAULT 'pending_review'
+                    CHECK(status IN ('pending_review','confirmed','rejected')),
+  confirmed_by      INTEGER REFERENCES person(person_id),
+  confirmed_at      TEXT,
+  erp_ref           TEXT,                        <span class="cm">-- 鼎新文管單號</span>
+  received_at       TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE doc_section_link (
+  link_id       INTEGER PRIMARY KEY AUTOINCREMENT,
+  doc_id        INTEGER NOT NULL REFERENCES document(doc_id),
+  section_id    INTEGER NOT NULL REFERENCES dhf_section(section_id),
+  assigned_by   TEXT NOT NULL CHECK(assigned_by IN ('AI','HUMAN')),
+  ai_confidence REAL,                            <span class="cm">-- 0–1，對應三色信心分級</span>
+  is_confirmed  INTEGER DEFAULT 0,
+  confirmed_by  INTEGER REFERENCES person(person_id),
+  UNIQUE(doc_id, section_id)
+);
+
+CREATE TABLE risk_assessment (
+  risk_id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  doc_id          INTEGER NOT NULL REFERENCES document(doc_id),
+  project_id      INTEGER NOT NULL REFERENCES project(project_id),
+  hazard          TEXT NOT NULL,
+  harm            TEXT,
+  severity        INTEGER,
+  probability     INTEGER,
+  risk_level      TEXT,
+  mitigation      TEXT,
+  iso14971_clause TEXT,
+  ai_suggested    INTEGER DEFAULT 1,             <span class="cm">-- 1=AI 建議，0=人工建立</span>
+  status          TEXT DEFAULT 'ai_draft'
+                  CHECK(status IN ('ai_draft','confirmed','rejected')),
+  confirmed_by    INTEGER REFERENCES person(person_id),
+  confirmed_at    TEXT,
+  created_at      TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE trace_link (
+  trace_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+  from_doc_id INTEGER NOT NULL REFERENCES document(doc_id),
+  to_doc_id   INTEGER NOT NULL REFERENCES document(doc_id),
+  link_type   TEXT NOT NULL CHECK(link_type IN
+              ('input_to_output','output_to_verification',
+               'output_to_validation','risk_to_mitigation','supersedes')),
+  created_by  INTEGER REFERENCES person(person_id),
+  created_at  TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE audit_log (
+  log_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type TEXT NOT NULL,                     <span class="cm">-- 'document' / 'risk_assessment'...</span>
+  entity_id   INTEGER NOT NULL,
+  action      TEXT NOT NULL,                     <span class="cm">-- created / classified / confirmed...</span>
+  actor_type  TEXT NOT NULL CHECK(actor_type IN ('AI','HUMAN','SYSTEM')),
+  actor_id    INTEGER,
+  detail_json TEXT,
+  created_at  TEXT DEFAULT (datetime('now'))
+);
+<span class="cm">-- audit_log 僅允許 INSERT；應用層禁用 UPDATE/DELETE</span>
+
+CREATE INDEX idx_doc_project  ON document(project_id);
+CREATE INDEX idx_doc_status   ON document(status);
+CREATE INDEX idx_dsl_section  ON doc_section_link(section_id);
+CREATE INDEX idx_risk_status  ON risk_assessment(status);
+CREATE INDEX idx_audit_entity ON audit_log(entity_type, entity_id);
+
+<span class="cm">-- 章節主檔種子資料（依 21 CFR 820.30 / ISO 13485 §7.3）</span>
+INSERT INTO dhf_section (section_id, section_code, name_zh, name_en, cfr_ref, iso_ref) VALUES
+ (1,'DP',  '設計計畫',   'Design Plan',        '820.30(b)','7.3.2'),
+ (2,'DI',  '設計輸入',   'Design Input',       '820.30(c)','7.3.3'),
+ (3,'DO',  '設計輸出',   'Design Output',      '820.30(d)','7.3.4'),
+ (4,'DR',  '設計審查',   'Design Review',      '820.30(e)','7.3.5'),
+ (5,'DV',  '設計查證',   'Design Verification','820.30(f)','7.3.6'),
+ (6,'DVal','設計確效',   'Design Validation',  '820.30(g)','7.3.7'),
+ (7,'DT',  '設計移轉',   'Design Transfer',    '820.30(h)','7.3.8'),
+ (8,'DC',  '設計變更',   'Design Changes',     '820.30(i)','7.3.9'),
+ (9,'RMF', '風險管理檔案','Risk Management File','—','ISO 14971');
+</pre>
+</section>
+
+<!-- ══════════════ 四、鼎新遷移對應 ══════════════ -->
+<section>
+  <h2>四、鼎新（Digiwin）遷移對應規劃</h2>
+  <p class="note">D1 作為中繼層的核心價值：所有實體已是正規化 SQL 表格，遷移時只做「欄位對應 + 批次匯出」，不需重新整理資料。</p>
+
+  <table>
+    <tr><th style="width:22%">D1 實體</th><th style="width:30%">鼎新對應模組（暫定）</th><th>遷移備註</th></tr>
+    <tr><td><code>PROJECT</code></td><td>專案管理 / 研發工單</td><td>以 <code>project_code</code> 為對照鍵，回填 <code>erp_ref</code></td></tr>
+    <tr><td><code>PERSON</code></td><td>人事主檔（員工編號）</td><td>email → 員工編號對照表，一次性建立</td></tr>
+    <tr><td><code>DOCUMENT</code></td><td>文件管理（文管）模組</td><td>檔案本體自 GitHub 匯出上傳；metadata 走批次匯入；<code>file_hash</code> 遷移後重驗</td></tr>
+    <tr><td><code>DHF_SECTION</code></td><td>文管分類代碼</td><td>主檔種子資料，於鼎新端建立相同代碼即可</td></tr>
+    <tr><td><code>DOC_SECTION_LINK</code></td><td>文件分類關聯</td><td>若鼎新僅支援單一分類，需確認是否支援多分類標籤；<b>此為遷移前必查項</b></td></tr>
+    <tr><td><code>RISK_ASSESSMENT</code></td><td>品質/風險模組（或自訂表單）</td><td>ISO 14971 欄位若無對應模組，評估以鼎新自訂電子表單承接</td></tr>
+    <tr><td><code>TRACE_LINK</code></td><td>—（多半無原生對應）</td><td>追溯矩陣可能需保留於 D1 或匯出為報表附件；<b>此為遷移前必查項</b></td></tr>
+    <tr><td><code>AUDIT_LOG</code></td><td>鼎新系統日誌 + 保留原始 D1 匯出檔</td><td>遷移前的 AI 分類軌跡以唯讀匯出封存（CSV/JSON），確保稽核可追溯至 email agent 時期</td></tr>
+  </table>
+
+  <h3>遷移三步驟</h3>
+  <table>
+    <tr><th style="width:12%">階段</th><th>內容</th></tr>
+    <tr><td>①凍結</td><td>停止 email agent 寫入 D1（或切為唯讀鏡像模式），匯出全部八表為 CSV + 完整 <code>audit_log</code></td></tr>
+    <tr><td>②對應</td><td>與鼎新導入顧問確認兩個必查項（多分類支援、追溯關聯承接方式），完成欄位對應表並試匯入一個小專案驗證</td></tr>
+    <tr><td>③切換</td><td>批次匯入 → 回填各表 <code>erp_ref</code> → 抽樣核對 <code>file_hash</code> → email agent 改為寫入鼎新 API（或維持 D1 前置、定期同步）</td></tr>
+  </table>
+
+  <div class="callout">
+    <b>法規提醒：</b>遷移本身屬於 QMS 下的系統變更，建議以一份簡要的資料遷移驗證紀錄（匯出筆數 = 匯入筆數、hash 抽核、追溯關聯抽核）納入 DHF/QMS 文件，避免稽核時被問「AI agent 時期的紀錄去哪了」。
+  </div>
+</section>
+
+<!-- ══════════════ 五、Mermaid 原始碼 ══════════════ -->
+<section>
+  <h2>五、Mermaid erDiagram 原始碼（可攜格式）</h2>
+  <p class="note">貼到任何支援 Mermaid 的工具（GitHub README、Notion、鼎新導入簡報）即可重現此圖。</p>
+<pre>
+erDiagram
+    PROJECT ||--o{ DOCUMENT : "隸屬"
+    PERSON  ||--o{ DOCUMENT : "提交 submitter_id"
+    DOCUMENT ||--o{ DOC_SECTION_LINK : ""
+    DHF_SECTION ||--o{ DOC_SECTION_LINK : ""
+    DOCUMENT ||--o{ RISK_ASSESSMENT : "觸發"
+    PERSON  ||--o{ RISK_ASSESSMENT : "確認 confirmed_by"
+    DOCUMENT ||--o{ TRACE_LINK : "from_doc_id"
+    DOCUMENT ||--o{ TRACE_LINK : "to_doc_id"
+
+    PROJECT {
+        int project_id PK
+        string project_code UK
+        string regulatory_path
+        string erp_ref
+    }
+    PERSON {
+        int person_id PK
+        string email UK
+        string erp_ref
+    }
+    DOCUMENT {
+        int doc_id PK
+        int project_id FK
+        int submitter_id FK
+        string file_hash UK
+        string confidence_tier
+        string status
+        string erp_ref
+    }
+    DHF_SECTION {
+        int section_id PK
+        string section_code UK
+        string cfr_ref
+        string iso_ref
+    }
+    DOC_SECTION_LINK {
+        int link_id PK
+        int doc_id FK
+        int section_id FK
+        string assigned_by
+        real ai_confidence
+    }
+    RISK_ASSESSMENT {
+        int risk_id PK
+        int doc_id FK
+        string status
+        int ai_suggested
+    }
+    TRACE_LINK {
+        int trace_id PK
+        int from_doc_id FK
+        int to_doc_id FK
+        string link_type
+    }
+    AUDIT_LOG {
+        int log_id PK
+        string entity_type
+        int entity_id
+        string actor_type
+    }
+</pre>
+</section>
+
+</main>
+
+<footer>
+  DHF_ER_Model_v2.html · Bioteq R&amp;D Dept.2 · Generated 2026-07-02 · Supersedes DHF_ER_Model_v1.html · Target: Cloudflare D1 (staging) → Digiwin ERP (production)
+</footer>
+
+</body>
+</html>
