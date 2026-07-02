@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VC-2026-02 · LitDB 專利分析管線 — Bioteq R&D Dept.2</title>
+<style>
+  :root{
+    --ink:#2A2622;
+    --ink-soft:#6B625A;
+    --paper:#FBF9F6;
+    --card:#FFFFFF;
+    --accent:#E86C3A;
+    --accent-deep:#B94E22;
+    --entity-lookup:#4A7A8C;
+    --entity-link:#5E8C5A;
+    --entity-audit:#8A8078;
+    --line:#D8D2CA;
+    --mono:ui-monospace,"SFMono-Regular",Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    line-height:1.75;
+    padding:0 0 80px;
+  }
+  .breadcrumb{
+    background:#2A2622;padding:10px 32px;
+  }
+  .breadcrumb a{color:#EDE7DE;font-family:var(--mono);font-size:12.5px;text-decoration:none;}
+  .breadcrumb span{color:#8A8078;font-family:var(--mono);font-size:12px;margin-left:14px;}
+
+  header{
+    border-bottom:3px solid var(--accent);
+    background:var(--card);
+    padding:36px 48px 28px;
+  }
+  .doc-meta{
+    font-family:var(--mono);font-size:12px;color:var(--ink-soft);
+    letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;
+  }
+  h1{font-size:26px;font-weight:700;letter-spacing:.02em;}
+  h1 .ver{color:var(--accent);font-family:var(--mono);font-size:18px;margin-left:8px;}
+  .subtitle{color:var(--ink-soft);font-size:14px;margin-top:6px;}
+
+  main{max-width:1000px;margin:0 auto;padding:0 32px;}
+  section{margin-top:48px;}
+  h2{font-size:19px;border-left:5px solid var(--accent);padding-left:14px;margin-bottom:18px;}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--accent-deep);}
+  p{margin:8px 0;}
+
+  .plain-intro{
+    background:var(--card);border:1px solid var(--line);
+    border-left:5px solid var(--entity-lookup);border-radius:8px;
+    padding:24px 28px;
+  }
+  .plain-intro h3{color:var(--entity-lookup);margin-top:0;}
+  .step{display:flex;gap:14px;align-items:flex-start;margin:10px 0;}
+  .step .num{
+    flex:0 0 auto;width:24px;height:24px;border-radius:50%;
+    background:var(--entity-lookup);color:#fff;font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+  }
+  .step p{font-size:14px;margin:0;}
+
+  .diagram-wrap{
+    background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:20px;overflow-x:auto;
+  }
+  svg{display:block;min-width:900px;}
+  .stg-title{font-size:13px;font-weight:700;fill:#fff;font-family:var(--mono);}
+  .stg-sub{font-size:10.5px;fill:var(--ink-soft);font-family:"Noto Sans TC",sans-serif;}
+  .stg-label{font-size:11px;fill:var(--ink);font-family:"Noto Sans TC",sans-serif;}
+  .flow-arrow{stroke:#6B625A;stroke-width:1.6;fill:none;marker-end:url(#arr);}
+
+  table{width:100%;border-collapse:collapse;background:var(--card);font-size:13.5px;margin:10px 0 8px;}
+  th{background:var(--ink);color:#fff;text-align:left;padding:8px 12px;font-weight:600;font-size:12.5px;}
+  td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  td code{font-family:var(--mono);font-size:12px;background:#F1EDE7;padding:1px 5px;border-radius:3px;}
+
+  .callout{
+    background:#FDF2EB;border:1px solid #F0C9B2;border-left:5px solid var(--accent);
+    border-radius:6px;padding:14px 18px;font-size:13.5px;margin:16px 0;
+  }
+  .callout b{color:var(--accent-deep);}
+
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;}
+  .compare .col{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 18px;}
+  .compare .col.old{border-top:4px solid var(--entity-audit);}
+  .compare .col.new{border-top:4px solid var(--accent);}
+  .compare h4{font-size:13px;margin-bottom:8px;font-family:var(--mono);letter-spacing:.04em;}
+  .compare ul{padding-left:18px;font-size:13px;color:var(--ink-soft);}
+  .compare li{margin:4px 0;}
+
+  footer{
+    max-width:1000px;margin:60px auto 0;padding:18px 32px 0;
+    border-top:1px solid var(--line);font-size:12px;color:var(--ink-soft);font-family:var(--mono);
+  }
+  @media (max-width:640px){
+    .compare{grid-template-columns:1fr;}
+    header{padding:28px 20px 22px;}
+    main{padding:0 20px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="breadcrumb">
+  <a href="../">← 返回 Vibe Coding 發想區</a>
+  <span>主題 02 · LitDB 專利分析管線</span>
+</div>
+
+<header>
+  <div class="doc-meta">BIOTEQ · R&amp;D DEPT. 2 · VIBE CODING · 2026-07-02</div>
+  <h1>LitDB 專利分析管線<span class="ver">VC-2026-02 · 概念一</span></h1>
+  <div class="subtitle">從「靜態資料庫」改造成「一句話輸入的專利分析管線」</div>
+</header>
+
+<main>
+
+<section>
+  <h2>導讀：這個構想在解決什麼問題（白話版）</h2>
+  <div class="plain-intro">
+
+    <h3>主題目的</h3>
+    <p>現在的 LitDB 花很多時間維護，但沒辦法自動化，資料整理得亂，介面也只有 CJ 自己看得懂。這個構想要解決的問題只有一個：<b>讓「輸入一句話（器材名稱）」就能自動跑出這個器材的專利地景報告</b>，不再需要人工一件一件讀專利、手填資料。</p>
+
+    <h3>脈絡（現在為什麼卡住）</h3>
+    <p style="font-size:14px;">根本原因不是 schema 設計得不好，是<b>三件本來該分開的事被綁在一起</b>：</p>
+    <div class="step"><span class="num">1</span><p>資料取得——現在是人工讀專利、手動填欄位</p></div>
+    <div class="step"><span class="num">2</span><p>資料整理——schema 隨著每次新需求手動長大，欄位越加越多、越加越亂</p></div>
+    <div class="step"><span class="num">3</span><p>資料呈現——介面跟資料綁死，所以只有建立者自己知道怎麼用</p></div>
+    <p style="font-size:14px;">只要第 1 步還是人工，第 2、3 步就永遠追不上、永遠會亂。所以重寫的重點<b>不是換一個更漂亮的 JSON schema</b>，而是把「取得」自動化，讓它變成一條會自己跑的管線。</p>
+
+    <h3>方法（新架構怎麼運作）</h3>
+    <p style="font-size:14px;">未來使用情境：CJ 打一句話，例如「同軸切片針」，管線自動跑完以下流程，最後給一份報告。</p>
+  </div>
+</section>
+
+<section>
+  <h2>管線流程圖</h2>
+  <div class="diagram-wrap">
+  <svg viewBox="0 0 900 640" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+        <path d="M1,1 L9,5 L1,9 Z" fill="#6B625A"/>
+      </marker>
+    </defs>
+
+    <!-- input -->
+    <rect x="300" y="10" width="300" height="46" rx="23" fill="#2A2622"/>
+    <text x="450" y="38" text-anchor="middle" class="stg-title">輸入：「同軸切片針」（一句話）</text>
+
+    <line x1="450" y1="56" x2="450" y2="82" class="flow-arrow"/>
+
+    <!-- stage 1 -->
+    <rect x="60" y="82" width="780" height="66" rx="6" fill="#fff" stroke="var(--accent)" stroke-width="1.6"/>
+    <rect x="60" y="82" width="130" height="66" rx="6" fill="var(--accent)"/>
+    <text x="125" y="110" text-anchor="middle" class="stg-title">① 概念展開</text>
+    <text x="125" y="128" text-anchor="middle" class="stg-sub">Claude</text>
+    <text x="205" y="112" class="stg-label">→ CPC 分類碼、中英日同義詞、上下位概念</text>
+    <text x="205" y="130" class="stg-label">   （coaxial / introducer / guide cannula）</text>
+
+    <line x1="450" y1="148" x2="450" y2="174" class="flow-arrow"/>
+
+    <!-- stage 2 -->
+    <rect x="60" y="174" width="780" height="76" rx="6" fill="#fff" stroke="var(--entity-lookup)" stroke-width="1.6"/>
+    <rect x="60" y="174" width="130" height="76" rx="6" fill="var(--entity-lookup)"/>
+    <text x="125" y="205" text-anchor="middle" class="stg-title">② 多源檢索</text>
+    <text x="125" y="223" text-anchor="middle" class="stg-sub">自動 API</text>
+    <text x="205" y="200" class="stg-label">→ PatentsView（美國官方，免費）</text>
+    <text x="205" y="216" class="stg-label">→ EPO OPS（法律狀態＋INPADOC 家族）</text>
+    <text x="205" y="232" class="stg-label">→ Lens.org、PQAI（語意檢索補漏）</text>
+
+    <line x1="450" y1="250" x2="450" y2="276" class="flow-arrow"/>
+
+    <!-- stage 3 -->
+    <rect x="60" y="276" width="780" height="60" rx="6" fill="#fff" stroke="var(--entity-link)" stroke-width="1.6"/>
+    <rect x="60" y="276" width="130" height="60" rx="6" fill="var(--entity-link)"/>
+    <text x="125" y="302" text-anchor="middle" class="stg-title">③ 引用滾雪球</text>
+    <text x="125" y="319" text-anchor="middle" class="stg-sub">Citation 表</text>
+    <text x="205" y="310" class="stg-label">→ backward（先前技術）＋ forward（後續改良）迭代到收斂</text>
+
+    <line x1="450" y1="336" x2="450" y2="362" class="flow-arrow"/>
+
+    <!-- stage 4 -->
+    <rect x="60" y="362" width="780" height="60" rx="6" fill="#fff" stroke="var(--entity-audit)" stroke-width="1.6"/>
+    <rect x="60" y="362" width="130" height="60" rx="6" fill="var(--entity-audit)"/>
+    <text x="125" y="388" text-anchor="middle" class="stg-title">④ 法律狀態過濾</text>
+    <text x="125" y="405" text-anchor="middle" class="stg-sub">EPO/USPTO</text>
+    <text x="205" y="396" class="stg-label">→ 有效 / 已過期 / 提前失效 / 審查中</text>
+
+    <line x1="450" y1="422" x2="450" y2="448" class="flow-arrow"/>
+
+    <!-- stage 5 -->
+    <rect x="60" y="448" width="780" height="66" rx="6" fill="#fff" stroke="var(--accent)" stroke-width="1.6"/>
+    <rect x="60" y="448" width="130" height="66" rx="6" fill="var(--accent)"/>
+    <text x="125" y="476" text-anchor="middle" class="stg-title">⑤ Claims 拆解</text>
+    <text x="125" y="494" text-anchor="middle" class="stg-sub">Claude・逐件</text>
+    <text x="205" y="478" class="stg-label">→ 獨立項拆成 element 清單</text>
+    <text x="205" y="496" class="stg-label">→ 每個 element 標記限制條件</text>
+
+    <line x1="450" y1="514" x2="450" y2="540" class="flow-arrow"/>
+
+    <!-- stage 6 -->
+    <rect x="60" y="540" width="780" height="66" rx="6" fill="#fff" stroke="var(--entity-lookup)" stroke-width="1.6"/>
+    <rect x="60" y="540" width="130" height="66" rx="6" fill="var(--entity-lookup)"/>
+    <text x="125" y="568" text-anchor="middle" class="stg-title">⑥ 地景綜合</text>
+    <text x="125" y="586" text-anchor="middle" class="stg-sub">跨專利矩陣</text>
+    <text x="205" y="570" class="stg-label">→ 限制矩陣：哪些設計組合被誰卡住、到何時</text>
+    <text x="205" y="588" class="stg-label">→ 設計空間 = 矩陣空格 ＋ 已過期專利自由使用區</text>
+
+  </svg>
+  </div>
+
+  <div class="callout">
+    <b>介面只需做兩件事：</b>「輸入一句話」和「看報告」。①～⑥全部自動跑，人不用再逐件讀專利、手填欄位——現在花在 LitDB 上的時間，本質上就是在人肉執行這六步。
+  </div>
+</section>
+
+<section>
+  <h2>各階段白話對照表</h2>
+  <table>
+    <tr><th style="width:16%">階段</th><th style="width:20%">現在（人工）</th><th>未來（自動）</th></tr>
+    <tr><td>① 概念展開</td><td>CJ 自己想同義詞、猜分類碼</td><td>AI 一次列出同義詞、上下位概念、CPC 碼</td></tr>
+    <tr><td>② 多源檢索</td><td>CJ 自己上不同網站查、複製貼上</td><td>四個 API 平行查詢，結果自動合併去重</td></tr>
+    <tr><td>③ 引用滾雪球</td><td>目前完全沒做，因為太花時間</td><td>自動追引用鏈，直到沒有新專利出現為止</td></tr>
+    <tr><td>④ 法律狀態過濾</td><td>CJ 手動查每件專利是否過期</td><td>API 直接回傳法律狀態，自動分類</td></tr>
+    <tr><td>⑤ Claims 拆解</td><td>CJ 讀請求項、手動理解限制範圍</td><td>AI 逐項拆解成結構化清單</td></tr>
+    <tr><td>⑥ 地景綜合</td><td>不存在——目前沒有能力做跨專利比對</td><td>自動產出「這個設計方向被誰卡住」的矩陣</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>新舊架構對照</h2>
+  <div class="compare">
+    <div class="col old">
+      <h4>LitDB v1（現況）</h4>
+      <ul>
+        <li>資料取得、整理、呈現綁在一起</li>
+        <li>schema 隨需求手動長大，欄位混亂</li>
+        <li>介面跟資料耦合，只有 CJ 會用</li>
+        <li>沒有滾雪球，人工挑漏</li>
+        <li>過期與垃圾專利沒有區分機制</li>
+      </ul>
+    </div>
+    <div class="col new">
+      <h4>LitDB v2（管線構想）</h4>
+      <ul>
+        <li>取得（API）／整理（AI）／呈現（報告）三層分離</li>
+        <li>資料庫只是管線的中間產物，不是終點</li>
+        <li>介面只做「輸入一句話＋看報告」</li>
+        <li>引用滾雪球自動跑到收斂</li>
+        <li>垃圾專利評估另立概念（VC-2026-03 待補）</li>
+      </ul>
+    </div>
+  </div>
+  <p style="font-size:13px;color:var(--ink-soft);">現有 146 筆資料（102 塗層＋44 切片）不用丟——寫遷移腳本轉進新架構當種子資料，CJ 手工標注的 <code>patent_core</code>、<code>design_space</code> 反而是訓練 AI 分析提示詞的黃金範例。</p>
+</section>
+
+</main>
+
+<footer>
+  VC-2026-02 · Vibe Coding 發想區 · Bioteq R&amp;D Dept.2 · 2026-07-02 · 概念一：管線架構（垃圾專利評估為概念二，另行記錄）
+</footer>
+
+</body>
+</html>
