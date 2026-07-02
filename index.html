@@ -134,6 +134,26 @@
     margin:16px 0;
   }
   .callout b{color:var(--accent-deep);}
+
+  /* 白話導讀 */
+  .plain-intro{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:5px solid var(--entity-lookup);
+    border-radius:8px;
+    padding:24px 28px;
+  }
+  .plain-intro h3{color:var(--entity-lookup);margin-top:0;}
+  .plain-intro .step{
+    display:flex;gap:14px;align-items:flex-start;margin:10px 0;
+  }
+  .plain-intro .step .num{
+    flex:0 0 auto;width:24px;height:24px;border-radius:50%;
+    background:var(--entity-lookup);color:#fff;font-size:12px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+  }
+  table.migrate-plain th{background:var(--entity-lookup);}
+  table.migrate-plain td.flag{color:var(--accent-deep);font-weight:700;}
   footer{
     max-width:1180px;margin:60px auto 0;padding:18px 32px 0;
     border-top:1px solid var(--line);
@@ -150,6 +170,46 @@
 </header>
 
 <main>
+
+<!-- ══════════════ 白話導讀 ══════════════ -->
+<section style="margin-top:32px;">
+  <h2>導讀：這份文件在做什麼（白話版）</h2>
+  <div class="plain-intro">
+
+    <h3>主題目的</h3>
+    <p style="font-size:14px;">你現在用 email 收案件執行人寄來的 DHF 文件；未來這些資料要能無痛搬到鼎新系統。這份 ER 模型就是先把「資料要長什麼樣子」設計好，讓現在（Cloudflare D1）跟未來（鼎新）用同一套邏輯，搬家時不用重新整理資料。</p>
+
+    <h3>脈絡（整個故事怎麼跑）</h3>
+    <div class="step"><span class="num">1</span><p style="font-size:14px;margin:0;">執行人寄一封 email，附上一份文件（例如驗證報告）</p></div>
+    <div class="step"><span class="num">2</span><p style="font-size:14px;margin:0;">系統收到信，AI 讀一下，猜這份文件屬於 DHF 哪個章節（設計輸入？驗證？）、有沒有風險要標記</p></div>
+    <div class="step"><span class="num">3</span><p style="font-size:14px;margin:0;">這些猜測<b>先存起來但不算數</b>，要等執行人自己確認過才正式生效——刻意這樣設計，是因為法規稽核不能讓 AI 自己下判斷、沒有人簽核</p></div>
+    <div class="step"><span class="num">4</span><p style="font-size:14px;margin:0;">之後鼎新系統上線，這些資料要整批搬過去（見下方「鼎新遷移對應」白話表）</p></div>
+
+    <h3>方法（下方各節在做什麼）</h3>
+    <table style="margin-top:6px;">
+      <tr><th style="width:22%">章節</th><th>白話說明</th></tr>
+      <tr><td>一、ER 圖</td><td>把上面故事裡出現的「案件」「人」「文件」「章節」「風險」畫成方框和連線，方框是「一種資料」，連線是「這兩種資料怎麼互相關聯」</td></tr>
+      <tr><td>二、關聯一覽</td><td>把 ER 圖裡的連線用文字表格重講一次，寫清楚「誰對誰、一個對多個還是多個對多個」</td></tr>
+      <tr><td>三、D1 建表腳本</td><td>照著 ER 圖直接寫成資料庫可以執行的程式碼，現階段測試部署用</td></tr>
+      <tr><td>四、鼎新遷移對應</td><td>逐一表格說明「這份資料未來搬到鼎新，會變成什麼、要先確認什麼」——最容易看不懂的通常是這節，下方另外用白話版重講一次</td></tr>
+      <tr><td>五、Mermaid 原始碼</td><td>同一張 ER 圖的純文字版，可貼到 GitHub、Notion 等工具重新畫出來，方便日後交接或簡報</td></tr>
+    </table>
+
+    <h3 style="margin-top:26px;">「四、鼎新遷移對應」白話重講</h3>
+    <p style="font-size:13.5px;color:var(--ink-soft);margin-bottom:10px;">大部分表格搬家很單純（案件、人員、章節碼表），真正要花心思確認的只有兩個地方，下表用粗體橘字標出。</p>
+    <table class="migrate-plain">
+      <tr><th style="width:20%">現在（D1）</th><th style="width:28%">未來搬去哪</th><th>白話備註</th></tr>
+      <tr><td>案件（PROJECT）</td><td>專案管理／研發工單</td><td>用案件編號互相對照即可，簡單</td></tr>
+      <tr><td>人員（PERSON）</td><td>人事主檔</td><td>把 email 換成鼎新的員工編號，建一次對照表就好</td></tr>
+      <tr><td>文件（DOCUMENT）</td><td>文管模組</td><td>檔案本身從 GitHub 搬過去，資料欄位批次匯入；檔案的「指紋」(hash) 搬完要再驗一次確保沒壞掉</td></tr>
+      <tr><td>章節碼表（DHF_SECTION）</td><td>文管分類代碼</td><td>固定的九大分類，鼎新那邊建同樣代碼即可，很單純</td></tr>
+      <tr><td>文件×章節（DOC_SECTION_LINK）</td><td>文件分類關聯</td><td class="flag">要先確認鼎新是否支援「一份文件同時掛多個分類」，如果只能選一個，這裡會卡住</td></tr>
+      <tr><td>風險評估（RISK_ASSESSMENT）</td><td>品質模組或自訂表單</td><td>鼎新可能沒有專門對應 ISO 14971 的欄位，可能要用自訂表單接住</td></tr>
+      <tr><td>追溯關聯（TRACE_LINK）</td><td>通常沒有原生對應</td><td class="flag">也要先確認——這是「設計輸入有沒有被驗證到」這種查詢的核心，鼎新如果沒有，可能得繼續留在 D1 或做成報表附件</td></tr>
+      <tr><td>稽核紀錄（AUDIT_LOG）</td><td>鼎新系統日誌</td><td>舊的 AI 判斷紀錄要匯出封存，確保稽核時查得到「當初 AI 時期發生了什麼」</td></tr>
+    </table>
+  </div>
+</section>
 
 <!-- ══════════════ 一、ER 圖 ══════════════ -->
 <section>
