@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VC-2026-S1 · 軟體採用策略 — Bioteq R&D Dept.2</title>
+<style>
+  :root{
+    --ink:#2A2622;
+    --ink-soft:#6B625A;
+    --paper:#FBF9F6;
+    --card:#FFFFFF;
+    --accent:#E86C3A;
+    --accent-deep:#B94E22;
+    --strategy:#7A5C8C;
+    --strategy-deep:#5C4370;
+    --entity-lookup:#4A7A8C;
+    --line:#D8D2CA;
+    --mono:ui-monospace,"SFMono-Regular",Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    line-height:1.8;
+    padding:0 0 80px;
+  }
+  .breadcrumb{background:#2A2622;padding:10px 32px;}
+  .breadcrumb a{color:#EDE7DE;font-family:var(--mono);font-size:12.5px;text-decoration:none;}
+  .breadcrumb span{color:#8A8078;font-family:var(--mono);font-size:12px;margin-left:14px;}
+
+  header{
+    border-bottom:3px solid var(--strategy);
+    background:var(--card);
+    padding:36px 48px 28px;
+  }
+  .doc-meta{
+    font-family:var(--mono);font-size:12px;color:var(--ink-soft);
+    letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;
+  }
+  h1{font-size:26px;font-weight:700;}
+  h1 .ver{color:var(--strategy);font-family:var(--mono);font-size:18px;margin-left:8px;}
+  .subtitle{color:var(--ink-soft);font-size:14px;margin-top:6px;}
+
+  main{max-width:860px;margin:0 auto;padding:0 32px;}
+  section{margin-top:48px;}
+  h2{font-size:19px;border-left:5px solid var(--strategy);padding-left:14px;margin-bottom:16px;}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--strategy-deep);}
+  p{margin:9px 0;font-size:14.5px;}
+
+  .thesis{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:5px solid var(--strategy);
+    border-radius:8px;
+    padding:26px 30px;
+    margin-top:28px;
+  }
+  .thesis .label{
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--strategy);margin-bottom:10px;
+  }
+  .thesis p{font-size:16.5px;font-weight:600;line-height:1.7;margin:0;}
+  .thesis .kpi{
+    margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);
+    font-size:13.5px;font-weight:400;color:var(--ink-soft);
+  }
+  .thesis .kpi b{color:var(--strategy-deep);}
+
+  table{width:100%;border-collapse:collapse;background:var(--card);font-size:13.5px;margin:12px 0;}
+  th{background:var(--ink);color:#fff;text-align:left;padding:8px 12px;font-weight:600;font-size:12.5px;}
+  td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  td.pick{background:#F3EEF7;font-weight:700;color:var(--strategy-deep);}
+
+  .ladder{margin:16px 0;}
+  .rung{
+    display:flex;align-items:center;gap:16px;
+    background:var(--card);border:1px solid var(--line);border-radius:6px;
+    padding:12px 18px;margin-bottom:6px;
+  }
+  .rung .cost{
+    flex:0 0 auto;font-family:var(--mono);font-size:11px;font-weight:700;
+    padding:3px 10px;border-radius:12px;color:#fff;white-space:nowrap;
+  }
+  .cost-low{background:#5E8C5A;}
+  .cost-mid{background:#C99A3C;}
+  .cost-high{background:#B0554A;}
+  .rung p{margin:0;font-size:13.5px;}
+
+  .callout{
+    background:#F3EEF7;border:1px solid #D9CCE3;border-left:5px solid var(--strategy);
+    border-radius:6px;padding:14px 18px;font-size:13.5px;margin:16px 0;
+  }
+  .callout b{color:var(--strategy-deep);}
+
+  .quarter{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0;
+  }
+  .month{
+    background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:16px 18px;border-top:4px solid var(--strategy);
+  }
+  .month h4{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--strategy-deep);margin-bottom:8px;}
+  .month ul{padding-left:16px;font-size:12.5px;color:var(--ink-soft);}
+  .month li{margin:4px 0;}
+
+  footer{
+    max-width:860px;margin:60px auto 0;padding:18px 32px 0;
+    border-top:1px solid var(--line);font-size:12px;color:var(--ink-soft);font-family:var(--mono);
+  }
+  @media (max-width:640px){
+    .quarter{grid-template-columns:1fr;}
+    header{padding:28px 20px 22px;}
+    main{padding:0 20px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="breadcrumb">
+  <a href="../">← 返回 Vibe Coding 發想區</a>
+  <span>策略 S1 · 軟體採用策略</span>
+</div>
+
+<header>
+  <div class="doc-meta">BIOTEQ · R&amp;D DEPT. 2 · STRATEGY · 2026-07-03</div>
+  <h1>讓自建工具真正被使用<span class="ver">VC-2026-S1</span></h1>
+  <div class="subtitle">開發策略：從「一人工具箱」到「有第二個活躍使用者」</div>
+</header>
+
+<main>
+
+<section style="margin-top:32px;">
+  <div class="thesis">
+    <div class="label">核心命題</div>
+    <p>目前的瓶頸不是功能不夠，是使用者只有一個人。再多開發十個工具，價值仍卡在同一個天花板。</p>
+    <div class="kpi">接下來一季唯一的 KPI：<b>有第二個人每週主動使用</b>。新功能全部凍結，除非直接服務這個目標。</div>
+  </div>
+</section>
+
+<section>
+  <h2>一、挑一個工具當灘頭堡，其他維持現狀</h2>
+  <p>不要讓五個工具同時被採用，挑一個就好。挑選標準不是「哪個技術最強」，而是「哪個對應到同事<b>已經在痛</b>的既有工作」。</p>
+  <table>
+    <tr><th style="width:22%">工具</th><th style="width:38%">評估</th><th>結論</th></tr>
+    <tr><td>LitDB / 510K Explorer</td><td>研發者自己的武器，同事沒有日常需求</td><td>先放著，維持自用</td></tr>
+    <tr><td>DMAIC2 / MedQA</td><td>品保有真實痛點，但跨部門推廣政治成本高</td><td>第二波再說</td></tr>
+    <tr><td class="pick">DHF Email 代理人</td><td class="pick">文件在研發、採購、法規之間傳來傳去、版本混亂——Kaneko 案親身經歷過的痛，同事也在同一個痛裡</td><td class="pick">灘頭堡 ✓</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>二、介面策略：工具長在同事既有的動作上</h2>
+  <p>「介面只有我會用」的根本原因，不是介面設計不好，而是<b>網頁工具要求使用者改變習慣</b>——記網址、學操作、理解建立者的心智模型。工廠與辦公室的現實是：同事的工作流長在 email、Word、Excel 裡。</p>
+
+  <h3>採用門檻階梯（由低到高）</h3>
+  <div class="ladder">
+    <div class="rung"><span class="cost cost-low">零學習</span><p><b>Email</b> — 寄信就好。同事不需要知道背後有 AI、有資料庫、有任何程式。DHF 代理人天然是這一種。</p></div>
+    <div class="rung"><span class="cost cost-mid">低學習</span><p><b>收到一份 Word / PDF 報告</b> — 打開就好。工具的產出物用同事熟悉的格式送達。</p></div>
+    <div class="rung"><span class="cost cost-high">要學習</span><p><b>網頁工具</b> — 要記網址、學操作。留給自己和未來的維護者，不當推廣入口。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>三、找一位「設計夥伴」，不是找「使用者」</h2>
+  <p>從研發二部或法規同事裡挑<b>一位</b>信得過、正在被文件管理困擾的人，直接說：「我在做一個東西幫你省整理文件的時間，你當我的白老鼠，每週跟我講哪裡難用。」</p>
+  <p>一位深度參與的設計夥伴，勝過十位禮貌性試用一次就消失的同事。<b>他的抱怨就是開發路線圖</b>——比自己想像使用者需求準確一百倍。</p>
+  <div class="callout">
+    <b>順帶的教訓：</b>ER 模型文件需要事後補「白話導讀」的那個瞬間，就是採用問題的縮影——連建立者自己隔天都覺得難懂的東西，同事第一眼一定放棄。之後每個對外產出物，<b>預設就要有白話層</b>，技術細節收在後面。
+  </div>
+</section>
+
+<section>
+  <h2>四、公司層面：用已發生的省時案例換取正當性</h2>
+
+  <h3>資料保密與系統驗證</h3>
+  <p>同事把公司文件寄給會呼叫外部 AI API 的系統，在 ISO 13485 的公司遲早被問保密與驗證問題。務實的第一步：<b>所有輸出定位成「草稿／建議」，正式紀錄仍走既有流程</b>——DHF 設計裡 <code style="font-family:var(--mono);font-size:12.5px;background:#F1EDE7;padding:1px 5px;border-radius:3px;">ai_draft → confirmed</code> 的人工關卡不只是法規考量，也是讓工具在灰色地帶先跑起來的策略。本地模型（Ollama）是中期方向，不是前置條件。</p>
+
+  <h3>向主管證明價值的彈藥（已經存在）</h3>
+  <p>TR-RD2-26-020 全英文測試報告、POM 斷裂分析報告、Kaneko 案文件協調——都是「用了 AI 工具後，原本 X 天的事變 Y 天」的具體案例。整理成<b>一頁 A4</b>（時間對比＋產出品質），目標不是邀功，是換取「讓一位同事正式試用」的許可與資源。</p>
+</section>
+
+<section>
+  <h2>三個月行動節奏</h2>
+  <div class="quarter">
+    <div class="month">
+      <h4>MONTH 1</h4>
+      <ul>
+        <li>DHF email 代理人第一階段上線（只分類、只回信、不寫入正式紀錄）</li>
+        <li>邀請一位設計夥伴開始寄信</li>
+        <li>整理省時案例 A4 一頁</li>
+      </ul>
+    </div>
+    <div class="month">
+      <h4>MONTH 2</h4>
+      <ul>
+        <li>每週跟設計夥伴收一次抱怨，只修他抱怨的東西</li>
+        <li>回信格式迭代到「打開就懂」</li>
+        <li>適當時機把 A4 給主管看</li>
+      </ul>
+    </div>
+    <div class="month">
+      <h4>MONTH 3</h4>
+      <ul>
+        <li>檢核 KPI：設計夥伴是否每週主動寄信？</li>
+        <li>是 → 開放第二、三位同事</li>
+        <li>否 → 檢討是介面問題還是痛點選錯，不急著加功能</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">
+    <b>一句話總結：</b>停止擴張工具數量，選 DHF email 代理人當灘頭堡，用 email 這個零學習介面，找一位設計夥伴，以「草稿輔助」定位跑三個月，拿到第二個活躍使用者再談下一步。
+  </div>
+</section>
+
+</main>
+
+<footer>
+  VC-2026-S1 · Vibe Coding 發想區 · 策略類 · Bioteq R&amp;D Dept.2 · 2026-07-03
+</footer>
+
+</body>
+</html>
