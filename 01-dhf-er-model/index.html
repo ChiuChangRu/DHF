@@ -154,6 +154,25 @@
   }
   table.migrate-plain th{background:var(--entity-lookup);}
   table.migrate-plain td.flag{color:var(--accent-deep);font-weight:700;}
+
+  /* 互動導讀 */
+  .itier{font-size:12px;color:var(--ink-soft);letter-spacing:.06em;margin:16px 0 8px;font-family:var(--mono);}
+  .itier:first-child{margin-top:0;}
+  .igrid{display:grid;gap:8px;}
+  .iunit{
+    display:block;width:100%;text-align:left;background:#fff;
+    border:1px solid var(--line);border-radius:8px;padding:10px 14px;
+    cursor:pointer;font-family:inherit;transition:border-color .15s;
+  }
+  .iunit:hover{border-color:var(--accent);}
+  .iunit.sel{border:2px solid var(--accent);padding:9px 13px;}
+  .iunit .nm{font-size:14px;font-weight:700;color:var(--ink);margin:0;}
+  .iunit .sb{font-size:12px;color:var(--ink-soft);margin:2px 0 0;font-weight:400;}
+  .iarrow{text-align:center;color:var(--ink-soft);margin:4px 0;font-size:15px;}
+  .idata{background:#F1EDE7;border-radius:8px;padding:12px;}
+  .ipanel{margin-top:16px;background:#F1EDE7;border-radius:8px;padding:16px 20px;}
+  .ipanel .pt{font-size:14px;font-weight:700;margin:0 0 6px;color:var(--entity-lookup);}
+  .ipanel .pb{font-size:14px;line-height:1.85;margin:0;color:var(--ink);}
   footer{
     max-width:1180px;margin:60px auto 0;padding:18px 32px 0;
     border-top:1px solid var(--line);
@@ -178,17 +197,87 @@
 
 <!-- ══════════════ 白話導讀 ══════════════ -->
 <section style="margin-top:32px;">
-  <h2>導讀：這份文件在做什麼（白話版）</h2>
+  <h2>導讀：這份文件在做什麼（互動白話版）</h2>
   <div class="plain-intro">
 
     <h3>主題目的</h3>
     <p style="font-size:14px;">你現在用 email 收案件執行人寄來的 DHF 文件；未來這些資料要能無痛搬到鼎新系統。這份 ER 模型就是先把「資料要長什麼樣子」設計好，讓現在（Cloudflare D1）跟未來（鼎新）用同一套邏輯，搬家時不用重新整理資料。</p>
 
-    <h3>脈絡（整個故事怎麼跑）</h3>
-    <div class="step"><span class="num">1</span><p style="font-size:14px;margin:0;">執行人寄一封 email，附上一份文件（例如驗證報告）</p></div>
-    <div class="step"><span class="num">2</span><p style="font-size:14px;margin:0;">系統收到信，AI 讀一下，猜這份文件屬於 DHF 哪個章節（設計輸入？驗證？）、有沒有風險要標記</p></div>
-    <div class="step"><span class="num">3</span><p style="font-size:14px;margin:0;">這些猜測<b>先存起來但不算數</b>，要等執行人自己確認過才正式生效——刻意這樣設計，是因為法規稽核不能讓 AI 自己下判斷、沒有人簽核</p></div>
-    <div class="step"><span class="num">4</span><p style="font-size:14px;margin:0;">之後鼎新系統上線，這些資料要整批搬過去（見下方「鼎新遷移對應」白話表）</p></div>
+    <h3>互動導讀：點任一方塊看白話說明</h3>
+    <p style="font-size:13.5px;color:var(--ink-soft);margin-bottom:14px;">整張圖一條主線：上面是「東西怎麼進來」，中間是「事實存放的地方（每個事實只存一份）」，下面是「資料被組裝成各種文件」。改資料不改文件——文件永遠可以重新算出來。</p>
+
+    <div class="itier">① 進件（同事唯一要做的事）</div>
+    <div class="igrid" style="grid-template-columns:1fr;">
+      <button class="iunit" data-k="email"><p class="nm">📧 Email 進件</p><p class="sb">寄信附上文件，零學習</p></button>
+    </div>
+    <div class="iarrow">▼</div>
+
+    <div class="itier">② AI 整理與人工把關</div>
+    <div class="igrid" style="grid-template-columns:1fr 1fr;">
+      <button class="iunit" data-k="ai"><p class="nm">AI 整理（抽取）</p><p class="sb">照表格填空，只出草稿</p></button>
+      <button class="iunit" data-k="confirm"><p class="nm">人工確認關卡</p><p class="sb">蓋章才算數</p></button>
+    </div>
+    <div class="iarrow">▼</div>
+
+    <div class="itier">③ 結構化資料層 — 事實只存一份（DHF 八實體）</div>
+    <div class="idata">
+      <div class="igrid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr));">
+        <button class="iunit" data-k="project"><p class="nm">PROJECT 案件</p><p class="sb">文件的戶籍</p></button>
+        <button class="iunit" data-k="person"><p class="nm">PERSON 人員</p><p class="sb">誰寄的、誰蓋章</p></button>
+        <button class="iunit" data-k="document"><p class="nm">DOCUMENT 文件</p><p class="sb">檔案的身分證</p></button>
+        <button class="iunit" data-k="section"><p class="nm">DHF_SECTION 章節</p><p class="sb">法規的九個抽屜</p></button>
+        <button class="iunit" data-k="link"><p class="nm">DOC_SECTION_LINK</p><p class="sb">文件×抽屜牽線人</p></button>
+        <button class="iunit" data-k="risk"><p class="nm">RISK_ASSESSMENT</p><p class="sb">AI 的風險便利貼</p></button>
+        <button class="iunit" data-k="trace"><p class="nm">TRACE_LINK 追溯</p><p class="sb">文件之間的紅線</p></button>
+        <button class="iunit" data-k="audit"><p class="nm">AUDIT_LOG 稽核</p><p class="sb">行車紀錄器</p></button>
+      </div>
+    </div>
+    <div class="iarrow">▼</div>
+
+    <div class="itier">④ 視圖層 — 文件只是資料的視圖，隨時重新生成</div>
+    <div class="igrid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr));">
+      <button class="iunit" data-k="v_email"><p class="nm">回信 email</p><p class="sb">查資料、套模板成信</p></button>
+      <button class="iunit" data-k="v_overview"><p class="nm">DHF 章節總覽</p><p class="sb">隨時現算的進度頁</p></button>
+      <button class="iunit" data-k="v_gap"><p class="nm">缺漏報告</p><p class="sb">找沒紅線的孤兒</p></button>
+      <button class="iunit" data-k="v_erp"><p class="nm">鼎新拋轉</p><p class="sb">搬資料，不搬 Word</p></button>
+    </div>
+
+    <div class="ipanel">
+      <p class="pt" id="ipanel-title">點上方任一方塊看白話說明</p>
+      <p class="pb" id="ipanel-body">上半部是「東西怎麼進來」，中間淺色區是「事實存放的地方」，下半部是「資料怎麼變出各種文件」。只要中間的資料是對的、確認過的，下面的出口要幾份有幾份、隨時重新生成。</p>
+    </div>
+
+    <script>
+    (function(){
+      var X = {
+        email:["Email 進件","同事把文件當附件寄到一個信箱，就像把東西丟進收件籃。不用記網址、不用學操作、不用知道背後有 AI——寄信這個動作本身，就是整個系統對同事唯一的要求。"],
+        ai:["AI 整理（抽取）","AI 像一位助理：打開附件讀完，照著固定的表格填空——這是哪個案子的？該放哪個抽屜？有沒有風險要注意？重點是它只有「填草稿」的權力，沒有蓋章的權力。填得再有信心，也只是鉛筆字。"],
+        confirm:["人工確認關卡","執行人是蓋章的人。助理填的每一格，都要人看過按下「接受」才算數；不對就修改或退回。沒蓋章的資料永遠只是建議，不會變成正式紀錄——稽核員來問「這是誰判斷的」，這一關就是答案。"],
+        project:["PROJECT 案件","每份文件的「戶籍」。所有資料都要掛在某個案子底下（例如 Kaneko 同軸針案）。未來搬到鼎新時，就用案件編號跟鼎新的專案主檔對起來，一個對照欄位就搞定。"],
+        person:["PERSON 人員","記「誰」的表：誰寄的信、誰蓋的章。現在用 email 位址認人，以後搬鼎新換成員工編號就好——人還是同一批人，只是換了一種叫法。"],
+        document:["DOCUMENT 文件","檔案的身分證：檔名、版本、還有一組「指紋」（雜湊值）用來證明檔案從收到那一刻起沒被動過。注意一個關鍵：這裡只存「這個檔案是誰」，檔案裡面的內容會被拆出來，存到其他格子去。"],
+        section:["DHF_SECTION 章節","法規規定的九個抽屜：設計計畫、設計輸入、設計輸出、設計審查、驗證、確認、設計移轉、設計變更、風險管理檔案。這是一張固定的分類表，像圖書館的分類架——架子不會變，變的是放進去的書。"],
+        link:["DOC_SECTION_LINK 牽線人","文件跟抽屜之間的媒人。一份驗證報告可以「同時」屬於驗證抽屜、又回應某個設計輸入——一份文件放兩個抽屜，靠這張表記住每條線是 AI 建議的還是人確認過的。沒有這張表，一份文件就只能屬於一個分類，很多真實情況會塞不進去。"],
+        risk:["RISK_ASSESSMENT 風險便利貼","AI 覺得這份文件有風險，就先貼一張便利貼（狀態叫 ai_draft），上面寫著它的理由。要等人簽名，便利貼才升級成正式評估（confirmed）。AI 寫的字跟人蓋的章分開存放，日後說得清楚哪句是誰說的。"],
+        trace:["TRACE_LINK 紅線","文件之間的紅線：「這個設計輸入，被那份驗證報告回應了」「這個風險，被那個設計變更處理了」。要查案子有沒有缺漏，就是找身上一條紅線都沒有的孤兒文件。這是整個系統最值錢的一張表——稽核最愛問的追溯問題，答案全靠它。"],
+        audit:["AUDIT_LOG 行車紀錄器","任何人或 AI 動了任何資料，系統自動記一筆：誰、什麼時候、做了什麼。而且只能新增、不能修改刪除——就像行車紀錄器不能倒帶重錄。稽核員問「這筆資料的來歷」，調紀錄就有完整答案。"],
+        v_email:["回信 email（視圖）","回給同事的那封信，不是 AI 每次自由發揮，而是從資料層「查出來、套模板、組成信」：你的文件收到了、放進了哪個抽屜、還缺什麼。格式每次都一樣，同事看兩封就會讀了——信只是資料的一種長相。"],
+        v_overview:["DHF 章節總覽（視圖）","隨時可以重新算出來的進度頁：這個案子九個抽屜各放了什麼、哪些確認了、哪些還在等蓋章。因為是從資料現算的，永遠是最新狀態——不存在「這份總表忘了更新」這種事，因為根本沒有一份要維護的總表。"],
+        v_gap:["缺漏報告（視圖）","一句查詢的事：「找出所有還沒有驗證紅線的設計輸入」。以前要人工拿兩份清單逐行核對，現在資料庫一秒吐出孤兒名單。這就是把事實存成結構化資料的直接回報。"],
+        v_erp:["鼎新拋轉（視圖）","未來搬家到鼎新，搬的是中間那箱「結構化資料」，不是那堆 Word 檔——因為所有文件隨時能從資料重新生成，檔案只是快照，資料才是本體。這是「文件只是視圖」在遷移上的最大紅利：搬家清單短很多。"]
+      };
+      var units = document.querySelectorAll('.iunit');
+      units.forEach(function(b){
+        b.addEventListener('click', function(){
+          units.forEach(function(u){ u.classList.remove('sel'); });
+          b.classList.add('sel');
+          var d = X[b.getAttribute('data-k')];
+          document.getElementById('ipanel-title').textContent = d[0];
+          document.getElementById('ipanel-body').textContent = d[1];
+        });
+      });
+    })();
+    </script>
 
     <h3>方法（下方各節在做什麼）</h3>
     <table style="margin-top:6px;">
